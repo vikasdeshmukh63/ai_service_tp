@@ -5,6 +5,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 
 from src.controllers.jd_controller import router as jd_router
 from src.core.config import env_load_info, settings
@@ -31,6 +32,14 @@ app = FastAPI(
     title="AI Service",
     version="0.1.0",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(jd_router, prefix="/api/v1", tags=["job-description"])

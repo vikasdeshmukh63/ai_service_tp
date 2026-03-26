@@ -70,6 +70,12 @@ class Settings(BaseSettings):
     # PostgreSQL (e.g. Neon) — same `DATABASE_URL` pattern as auth_service
     database_url: str | None = Field(default=None, validation_alias="DATABASE_URL")
 
+    # Comma-separated browser origins allowed to call this API (Next.js dev, prod URL, etc.)
+    cors_origins: str = Field(
+        default="http://localhost:3000,http://127.0.0.1:3000",
+        validation_alias="CORS_ORIGINS",
+    )
+
     @model_validator(mode="before")
     @classmethod
     def sync_app_env(cls, data: object) -> object:
@@ -83,6 +89,11 @@ class Settings(BaseSettings):
         if self.log_level:
             return self.log_level
         return "info" if self.environment == "production" else "debug"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def cors_origins_list(self) -> list[str]:
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
 
 settings = Settings()
