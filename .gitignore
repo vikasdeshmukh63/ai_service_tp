@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Env (mirror auth_service)
+.env
+.env.local
+.env.dev
+.env.qa
+.env.uat
+.env.production
+.env.test
+
+# Logs
+*.log
+logs/
+
+# Local uploads (dev)
+uploads/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/

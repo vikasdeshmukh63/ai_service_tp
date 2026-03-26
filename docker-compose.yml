@@ -1,0 +1,16 @@
+services:
+  ai_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      PORT: "8000"
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
