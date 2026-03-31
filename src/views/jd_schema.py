@@ -55,33 +55,55 @@ class JDExtractionSchema(BaseModel):
     role: str | None = Field(
         default=None,
         description=(
-            "Primary role or function (e.g. backend developer, data analyst) "
-            "if distinct from title."
+            "Job function or track (e.g. Full-stack Developer, Backend Engineer, Data Analyst). "
+            "Infer from title and stack when implied (e.g. MERN title -> Full-stack Developer)."
         ),
     )
     seniority: str | None = Field(
         default=None,
         description=(
-            "Seniority level if stated (e.g. Junior, Mid, Senior, Lead, Principal, Staff)."
+            "Normalized seniority: Intern, Junior, Mid-level, Senior, Lead, Principal, Staff. "
+            "Infer from title ('Senior X'), years of experience, or explicit wording."
+        ),
+    )
+    experience_min_years: int | None = Field(
+        default=None,
+        description=(
+            "Minimum years of experience in a stated range (e.g. 3 from '3-6 years' or "
+            "'3+ years'). Whole years only."
+        ),
+    )
+    experience_max_years: int | None = Field(
+        default=None,
+        description=(
+            "Maximum years in a stated range (e.g. 6 from '3-6 years'). "
+            "If only a minimum is stated (e.g. '5+ years'), set max to null."
         ),
     )
     experience_years: int | None = Field(
         default=None,
         description=(
-            "Minimum total years of experience required, as a whole number of years only."
+            "Legacy single minimum when no explicit range exists; prefer experience_min_years. "
+            "If you output min/max, you may set this equal to experience_min_years."
         ),
     )
     experience_months: int | None = Field(
         default=None,
         description=(
-            "Additional months beyond experience_years if the JD states a range like "
-            "X years Y months; use 0 if not stated."
+            "Additional months beyond whole years if the JD states 'X years Y months'; else null."
         ),
     )
     employment_type: str | None = Field(
         default=None,
         description=(
             "Employment type (e.g. full-time, part-time, contract, internship, freelance)."
+        ),
+    )
+    salary_currency: str | None = Field(
+        default=None,
+        description=(
+            "ISO-like currency code for compensation (INR, USD, EUR, GBP). "
+            "Infer from symbols (₹, $) or text (INR, USD, LPA in India context)."
         ),
     )
     salary_range_type: SalaryRangeType | None = Field(
@@ -93,13 +115,14 @@ class JDExtractionSchema(BaseModel):
     salary_min: float | None = Field(
         default=None,
         description=(
-            "Lower bound of the salary or compensation range in numeric form (no currency symbols)."
+            "Lower bound in numeric form (annual base currency units). "
+            "For India: convert LPA/lakhs to full numbers (12 LPA -> 1200000, 12-22 LPA -> min 1200000)."
         ),
     )
     salary_max: float | None = Field(
         default=None,
         description=(
-            "Upper bound of the salary or compensation range in numeric form (no currency symbols)."
+            "Upper bound in same units as salary_min. 22 LPA -> 2200000."
         ),
     )
     work_arrangement: WorkArrangement | None = Field(
@@ -109,14 +132,21 @@ class JDExtractionSchema(BaseModel):
     policy: str | None = Field(
         default=None,
         description=(
-            "Workplace or HR policy notes called out in the JD (e.g. return-to-office, "
-            "visa, background check)."
+            "Hybrid/remote policy or WFH rules (e.g. '3 days/week in office', "
+            "'2 days remote') and other workplace rules; also visa/background if prominent."
+        ),
+    )
+    locations: list[str] = Field(
+        default_factory=list,
+        description=(
+            "All distinct location strings: country, city/state, or site name as separate "
+            "entries when multiple (e.g. 'India', 'Mumbai, Maharashtra')."
         ),
     )
     location: str | None = Field(
         default=None,
         description=(
-            "Primary work location: city, state/region, country, or address line as written."
+            "Optional single-line summary of primary location; prefer filling locations list."
         ),
     )
     job_summary: str | None = Field(
@@ -182,8 +212,8 @@ class JDExtractionSchema(BaseModel):
     key_callout: str | None = Field(
         default=None,
         description=(
-            "A single highlighted selling point or urgent callout the JD emphasizes "
-            "(e.g. signing bonus)."
+            "One line the JD highlights for candidates: application instructions "
+            "(e.g. apply only on portal, no LinkedIn), urgency, or top perk/benefit callout."
         ),
     )
     google_maps_url_of_office_location: str | None = Field(
